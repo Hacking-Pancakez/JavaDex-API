@@ -17,7 +17,15 @@ import dev.kurumiDisciples.javadex.api.JavaDexBuilder;
 
 public class BuildAction {
 
+/**
 
+Retrieves session and refresh tokens from MangaDex API.
+@param builder JavaDexBuilder object containing user credentials.
+@return an array of String containing session token, expiration time, and refresh token.
+@throws MalformedURLException if the URL provided is malformed.
+@throws IOException if an I/O error occurs while opening the connection or reading the input stream.
+@throws ProtocolException if an invalid HTTP method is used.
+*/
   
   public static String[] retrieveTokens(JavaDexBuilder builder) throws MalformedURLException, IOException, ProtocolException {
     String base_url = "https://api.mangadex.org";

@@ -65,15 +65,12 @@ public class Manga implements ISnowflake{
   private String latestUploadedChapterId;
 
   public Manga(JsonObject mangaJson) {
-        this.id = mangaJson.getString("id");
+    mangaJson = mangaJson.getJsonObject("data");    
+    this.id = mangaJson.getString("id");
         this.title = mangaJson.getJsonObject("attributes").getJsonObject("title").getString("en");
         this.author = null; // You can assign a value from mangaJson's "relationships" object if it exists
         this.description = mangaJson.getJsonObject("attributes").getJsonObject("description").getString("en");
-        this.altTitles = mangaJson.getJsonObject("attributes").getJsonArray("altTitles")
-            .getValuesAs(JsonObject.class)
-            .stream()
-            .map(json -> json.getString("en"))
-            .toArray(String[]::new);
+        
         this.isLocked = mangaJson.getJsonObject("attributes").getBoolean("isLocked");
         this.originalLanguage = mangaJson.getJsonObject("attributes").getString("originalLanguage");
         this.lastVolume = mangaJson.getJsonObject("attributes").getString("lastVolume");
@@ -88,21 +85,12 @@ public class Manga implements ISnowflake{
         this.createdAt = OffsetDateTime.parse(mangaJson.getJsonObject("attributes").getString("createdAt"));
         this.updatedAt = OffsetDateTime.parse(mangaJson.getJsonObject("attributes").getString("updatedAt"));
         this.version = mangaJson.getJsonObject("attributes").getJsonNumber("version").longValue();
-        this.availableTranslatedLanguages = mangaJson.getJsonObject("attributes").getJsonArray("availableTranslatedLanguages")
-            .getValuesAs(JsonObject.class)
-            .stream()
-            .map(json -> json.getString("en"))
-            .toArray(String[]::new);
+        
         this.latestUploadedChapterId = mangaJson.getJsonObject("attributes").getString("latestUploadedChapter");
 
         // Parse tags
-        this.tags = new ArrayList<>();
-        JsonArray tagsJsonArray = mangaJson.getJsonObject("attributes").getJsonArray("tags");
-        for (JsonObject tagJson : tagsJsonArray.getValuesAs(JsonObject.class)) {
-            MangaTag tag = MangaTag.fromTag(tagJson.getJsonObject("attributes").getJsonObject("name").getString("en"));
-            this.tags.add(tag);
+        
 
-        }
   }
 
   @Override
@@ -120,5 +108,51 @@ public class Manga implements ISnowflake{
     return updatedAt;
   }
 
+  public String getTitle() {
+    return title;
+  }
+
+  public String getAuthor() {
+    return author;
+  }
   
+  public String getDescription() {
+    return description;
+  }
+  
+  public String[] getAltTitles() {
+    return altTitles;
+  }
+
+  public boolean isLocked() {
+    return isLocked;
+  }
+
+  public String getOriginalLanguage() {
+    return originalLanguage;
+  }
+
+  public String getLastVolume() {
+    return lastVolume;
+  }
+
+  public String getLastChapter() {
+    return lastChapter;
+  }
+
+  public String getPublicationDemographic() {
+    return publicationDemographic;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public long getYear() {
+    return year;
+  }
+
+  public String getLatestUploadedChapterId() {
+    return latestUploadedChapterId;
+  }
 }

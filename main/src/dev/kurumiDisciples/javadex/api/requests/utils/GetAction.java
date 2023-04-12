@@ -12,6 +12,8 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
+import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
+
 public class GetAction {
     private String url;
     private ExecutorService executor;
@@ -38,14 +40,14 @@ public class GetAction {
             try {
                 JsonObject result = execute();
                 future.complete(result);
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 future.completeExceptionally(ex);
             }
         });
         return future;
     }
     
-    public JsonObject execute() throws IOException {
+    public JsonObject execute() throws IOException, ErrorException {
         String queryString = buildQueryString(params);
         URL url = new URL(this.url + queryString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -60,6 +62,7 @@ public class GetAction {
             JsonReader jsonReader = Json.createReader(connection.getInputStream());
             JsonObject jsonObject = jsonReader.readObject();
             jsonReader.close();
+          if (isError(jsonObject)) throw new ErrorException(jsonObject);
             return jsonObject;
         } else {
             throw new IOException("GET request failed with response code " + responseCode);
@@ -81,4 +84,8 @@ public class GetAction {
         sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
     }
+
+  private static boolean isError(JsonObject response){
+    return response.getString("result").equals("error");
+  }
 }
