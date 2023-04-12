@@ -23,7 +23,15 @@ public class JavaDexBuilder {
   }
 
   public JavaDex build(){
+    try{
     return new JavaDex(BuildAction.retrieveTokens(this));
+    }
+    catch (Exception e){
+      System.out.println("Error while building the JavaDex");
+      e.printStackTrace();
+      System.out.println("Building guest JavaDex");
+    }
+    return new JavaDex();
 }
 
   public String getUsername() {

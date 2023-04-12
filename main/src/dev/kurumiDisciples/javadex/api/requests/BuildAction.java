@@ -10,13 +10,16 @@ import java.time.temporal.ChronoUnit;
 import javax.json.Json;
 import javax.json.JsonObject;
 
+import java.io.*;
+import java.net.*;
+
 import dev.kurumiDisciples.javadex.api.JavaDexBuilder;
 
 public class BuildAction {
 
 
   
-  public static String[] retrieveTokens(JavaDexBuilder builder) {
+  public static String[] retrieveTokens(JavaDexBuilder builder) throws MalformedURLException, IOException, ProtocolException {
     String base_url = "https://api.mangadex.org";
 
         // Credentials

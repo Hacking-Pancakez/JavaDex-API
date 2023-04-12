@@ -19,5 +19,3 @@ public class JavaDex {
     this.expire = null;
   }
 }
-
-}
