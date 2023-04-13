@@ -17,7 +17,7 @@ public class Chapter implements ISnowflake, IPublishable{
 
   private final String id;
   private final long volume;
-  private final long chapter;
+  private final double chapter;
   private final String title; 
   private final int version;
   private final String translatedLanguage;
@@ -34,17 +34,17 @@ public class Chapter implements ISnowflake, IPublishable{
     JsonObject attributes = data.getJsonObject("attributes");
     
     this.id = data.getString("id");
-    this.volume = attributes.getJsonNumber("volume").longValue();
-    this.chapter = attributes.getJsonNumber("chapter").longValue();
-    this.title = attributes.getString("title");
+    this.volume = Long.parseLong(attributes.getString("volume", "0"));
+    this.chapter = Double.parseDouble(attributes.getString("chapter"));
+    this.title = attributes.getString("title", "no_title");
     this.version = attributes.getJsonNumber("version").intValue();
     this.translatedLanguage = attributes.getString("translatedLanguage");
     this.pages = attributes.getJsonNumber("pages").intValue();
     this.relationships = new Relationships(data.getJsonArray("relationships"));
-    this.createdAt = OffsetDateTime.parse(attributes.getString("createdAt"));
-    this.updatedAt = OffsetDateTime.parse(attributes.getString("updatedAt"));
-    this.publishedAt = OffsetDateTime.parse(attributes.getString("publishedAt"));
-    this.readableAt = OffsetDateTime.parse(attributes.getString("readableAt"));
+    this.createdAt = OffsetDateTime.parse(attributes.getString("createdAt","2001-09-09T01:46:40Z"));
+    this.updatedAt = OffsetDateTime.parse(attributes.getString("updatedAt", "2001-09-09T01:46:40Z"));
+    this.publishedAt = OffsetDateTime.parse(attributes.getString("publishedAt", "2001-09-09T01:46:40Z"));
+    this.readableAt = OffsetDateTime.parse(attributes.getString("readableAt", "2001-09-09T01:46:40Z"));
   }
 
   /* will be avaliable with relationships support */
@@ -81,7 +81,7 @@ public class Chapter implements ISnowflake, IPublishable{
     return readableAt;
   }
 
-  public long getChapter() {
+  public double getChapter() {
     return chapter;
   }
 

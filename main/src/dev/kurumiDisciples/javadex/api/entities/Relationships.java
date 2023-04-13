@@ -29,6 +29,8 @@ public class Relationships {
 }
 
 enum Type{
+  ARTIST("artist"),
+  AUTHOR("author"),
   GROUP("scanlation_group"),
   MANGA("manga"),
   USER("user");

@@ -3,6 +3,7 @@ package dev.kurumiDisciples.javadex.api.manga;
 import dev.kurumiDisciples.javadex.api.manga.MangaTag;
 
 import dev.kurumiDisciples.javadex.api.entities.ISnowflake;
+import dev.kurumiDisciples.javadex.api.entities.Chapter;
 
 import java.util.List;
 
@@ -12,6 +13,14 @@ import javax.json.*;
 import javax.json.stream.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
+
+import java.io.IOException; 
+
+import dev.kurumiDisciples.javadex.api.requests.utils.GetAction;
+import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
 
 public class Manga implements ISnowflake{
 
@@ -77,7 +86,7 @@ public class Manga implements ISnowflake{
         this.lastChapter = mangaJson.getJsonObject("attributes").getString("lastChapter");
         this.publicationDemographic = mangaJson.getJsonObject("attributes").getString("publicationDemographic");
         this.status = mangaJson.getJsonObject("attributes").getString("status");
-        this.year = mangaJson.getJsonObject("attributes").getJsonNumber("year").longValue();
+        this.year = Long.parseLong(mangaJson.getJsonObject("attributes").getString("year", "1970"));
         this.imageUrl = null; // You can assign a value from mangaJson's "relationships" object if it exists
         this.contentRating = mangaJson.getJsonObject("attributes").getString("contentRating");
         this.state = mangaJson.getJsonObject("attributes").getString("state");
@@ -140,6 +149,10 @@ public class Manga implements ISnowflake{
     return lastChapter;
   }
 
+  public String getContentRating(){
+    return contentRating;
+  }
+
   public String getPublicationDemographic() {
     return publicationDemographic;
   }
@@ -154,5 +167,82 @@ public class Manga implements ISnowflake{
 
   public String getLatestUploadedChapterId() {
     return latestUploadedChapterId;
+  }
+
+
+  public List<Chapter> retrieveFeed() {
+    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/feed", Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
+
+    try{
+    JsonObject response = getAction.execute();
+    
+    if (isError(response)) throw new RuntimeException("Error retrieving manga feed: " + response.getJsonArray("errors").getJsonObject(0).getString("detail"));
+    JsonArray chapters = response.getJsonArray("data");
+
+    List<Chapter> chaptersList = new ArrayList<>();
+
+    for (int i = 0; i < chapters.size(); i++) {
+      JsonObject chapter = chapters.getJsonObject(i);
+      chaptersList.add(new Chapter(chapter));
+    } 
+    return chaptersList;
+    }
+    catch (IOException e){
+      e.printStackTrace();
+      return null;
+    }
+    catch (ErrorException e){
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public List<Chapter> retrieveChaptersByLang(String lang){
+    return retrieveChaptersByLang(lang, false);
+  }
+  
+  public List<Chapter> retrieveChaptersByLang(String lang, boolean sort) {
+    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/feed?translatedLanguage[]=" + lang, Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
+
+    try{
+    JsonObject response = getAction.execute();
+    
+    if (isError(response)) throw new RuntimeException("Error retrieving manga feed: " + response.getJsonArray("errors").getJsonObject(0).getString("detail"));
+    JsonArray chapters = response.getJsonArray("data");
+
+    List<Chapter> chaptersList = new ArrayList<>();
+
+    for (int i = 0; i < chapters.size(); i++) {
+      JsonObject chapter = chapters.getJsonObject(i);
+      chaptersList.add(new Chapter(chapter));
+    } 
+    if (sort) chaptersList = sortChaptersByNumber(chaptersList);
+    return chaptersList;
+    }
+    catch (IOException e){
+      e.printStackTrace();
+      return null;
+    }
+    catch (ErrorException e){
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+
+  private static List<Chapter> sortChaptersByNumber(List<Chapter> chapters) {
+        List<Chapter> sortedChapters = new ArrayList<>(chapters);
+        Collections.sort(sortedChapters, new Comparator<Chapter>() {
+            @Override
+            public int compare(Chapter c1, Chapter c2) {
+                return Double.compare(c1.getChapter(), c2.getChapter());
+            }
+        });
+        return sortedChapters;
+    }
+
+
+  private static boolean isError(JsonObject response) {
+    return response.getString("result").equals("error");
   }
 }
