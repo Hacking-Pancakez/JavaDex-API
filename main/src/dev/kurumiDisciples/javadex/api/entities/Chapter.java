@@ -142,7 +142,7 @@ public class Chapter implements ISnowflake, IPublishable{
 
 
 
-  public void retrieveHash(){
+  private void retrieveHash(){
     if (hash == null) {
       try{
       hash = HashAction.getHash(this);
@@ -157,15 +157,6 @@ public class Chapter implements ISnowflake, IPublishable{
 
   public String getHash(){
     return hash;
-  }
-
-  public void retrieveHashAsync(){
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        retrieveHash();
-      }
-    });
   }
   
   private static boolean isChapterData(JsonObject data){

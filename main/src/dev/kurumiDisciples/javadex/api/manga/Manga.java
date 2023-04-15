@@ -85,7 +85,7 @@ public class Manga implements ISnowflake{
       mangaJson = original;
       this.id = UUID.fromString(mangaJson.getString("id"));
     }
-        this.title = mangaJson.getJsonObject("attributes").getJsonObject("title").getString("en");
+        this.title = mangaJson.getJsonObject("attributes").getJsonObject("title").getString("en", "no_title");
         this.author = null; // You can assign a value from mangaJson's "relationships" object if it exists
         this.description = mangaJson.getJsonObject("attributes").getJsonObject("description").getString("en", "not_available");
         
