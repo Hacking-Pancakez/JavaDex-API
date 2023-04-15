@@ -1,4 +1,4 @@
-package dev.kurumiDisciples.javadex.api.requests.utils;
+ package dev.kurumiDisciples.javadex.api.requests.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,8 +11,12 @@ import java.util.concurrent.Executors;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-
+import javax.json.*;
 import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import javax.json.JsonObject;
+import java.nio.charset.StandardCharsets;
 
 public class GetAction {
     private String url;
@@ -33,6 +37,13 @@ public class GetAction {
     this.params = params;
     this.executor = Executors.newFixedThreadPool(10);
   }
+
+  public GetAction(String url){
+    this.url = url;
+    this.headers = Json.createObjectBuilder().build();
+    this.params = Json.createObjectBuilder().build();
+    this.executor = Executors.newFixedThreadPool(10);
+  }
     
     public CompletableFuture<JsonObject> executeAsync() {
         CompletableFuture<JsonObject> future = new CompletableFuture<>();
@@ -48,7 +59,7 @@ public class GetAction {
     }
     
     public JsonObject execute() throws IOException, ErrorException {
-        String queryString = buildQueryString(params);
+        String queryString = jsonObjectToQueryString(params);
         URL url = new URL(this.url + queryString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -69,21 +80,53 @@ public class GetAction {
         }
     }
     
-    private String buildQueryString(JsonObject params) {
-        if (params == null || params.isEmpty()) {
-            return "";
+    public static String jsonObjectToQueryString(JsonObject jsonObject) {
+        StringBuilder queryString = new StringBuilder();
+
+        for (String key : jsonObject.keySet()) {
+            JsonValue value = jsonObject.get(key);
+
+            if (value.getValueType() == JsonValue.ValueType.ARRAY) {
+                JsonArray jsonArray = value.asJsonArray();
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    queryString.append(encodeUrlParameter(key))
+                            .append("=")
+                            .append(encodeUrlParameter(jsonArray.getString(i)))
+                            .append("&");
+                }
+            } else {
+                queryString.append(encodeUrlParameter(key))
+                        .append("=")
+                        .append(encodeUrlParameter(value.toString()))
+                        .append("&");
+            }
         }
-        
-        StringBuilder sb = new StringBuilder();
-        sb.append("?");
-        
-        for (String key : params.keySet()) {
-            sb.append(key).append("=").append(params.getString(key)).append("&");
+
+        // Remove the last '&' character
+        if (queryString.length() > 0) {
+            queryString.setLength(queryString.length() - 1);
         }
-        
-        sb.deleteCharAt(sb.length() - 1);
-        return sb.toString();
+     
+
+        return "?" + queryString.toString().replace("%22", "").replace("%5B", "[").replace("%5D", "]");
     }
+
+  private static String encodeUrlParameter(String parameter) {
+        try {
+            return URLEncoder.encode(parameter, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 encoding is not supported", e);
+        }
+    }
+
+private static String urlEncode(String value) {
+    try {
+        return URLEncoder.encode(value, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+        // This should never happen since UTF-8 is a standard encoding
+        throw new RuntimeException(e);
+    }
+}
 
   private static boolean isError(JsonObject response){
     return response.getString("result").equals("error");

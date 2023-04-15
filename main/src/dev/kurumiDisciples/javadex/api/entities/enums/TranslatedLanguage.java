@@ -1,4 +1,4 @@
-package dev.kurumi.javadex.api.entities.enums;
+package dev.kurumiDisciples.javadex.api.entities.enums;
 
 public enum TranslatedLanguage {
   ENGLISH("en");

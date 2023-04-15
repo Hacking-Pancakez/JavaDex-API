@@ -5,7 +5,10 @@ import dev.kurumiDisciples.javadex.api.manga.MangaTag;
 import dev.kurumiDisciples.javadex.api.entities.ISnowflake;
 import dev.kurumiDisciples.javadex.api.entities.Chapter;
 
+import dev.kurumiDisciples.javadex.api.entities.enums.*;
+
 import java.util.List;
+import java.util.UUID;
 
 import java.time.OffsetDateTime;
 
@@ -25,7 +28,7 @@ import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
 public class Manga implements ISnowflake{
 
 
-  private String id;
+  private UUID id;
 
   private List<MangaTag> tags;
 
@@ -47,17 +50,17 @@ public class Manga implements ISnowflake{
   private String lastChapter;
 
   /* change to a independent class for demographic */
-  private String publicationDemographic;
+  private Demographic publicationDemographic;
 
   /* change to a class for status */
-  private String status;
+  private Status status;
 
   private long year;
 
   private String imageUrl;
   
   /* change to a class for content rating */
-  private String contentRating;
+  private ContentRating contentRating;
 
   private String state;
   
@@ -74,39 +77,50 @@ public class Manga implements ISnowflake{
   private String latestUploadedChapterId;
 
   public Manga(JsonObject mangaJson) {
-    mangaJson = mangaJson.getJsonObject("data");    
-    this.id = mangaJson.getString("id");
+    JsonObject original = mangaJson;
+    try {
+    mangaJson = mangaJson.getJsonObject("data");
+    this.id = UUID.fromString(mangaJson.getString("id"));
+    } catch (Exception e) {
+      mangaJson = original;
+      this.id = UUID.fromString(mangaJson.getString("id"));
+    }
         this.title = mangaJson.getJsonObject("attributes").getJsonObject("title").getString("en");
         this.author = null; // You can assign a value from mangaJson's "relationships" object if it exists
-        this.description = mangaJson.getJsonObject("attributes").getJsonObject("description").getString("en");
+        this.description = mangaJson.getJsonObject("attributes").getJsonObject("description").getString("en", "not_available");
         
         this.isLocked = mangaJson.getJsonObject("attributes").getBoolean("isLocked");
         this.originalLanguage = mangaJson.getJsonObject("attributes").getString("originalLanguage");
-        this.lastVolume = mangaJson.getJsonObject("attributes").getString("lastVolume");
-        this.lastChapter = mangaJson.getJsonObject("attributes").getString("lastChapter");
-        this.publicationDemographic = mangaJson.getJsonObject("attributes").getString("publicationDemographic");
-        this.status = mangaJson.getJsonObject("attributes").getString("status");
+        this.lastVolume = mangaJson.getJsonObject("attributes").getString("lastVolume", "no_value");
+        this.lastChapter = mangaJson.getJsonObject("attributes").getString("lastChapter", "no_value");
+        this.publicationDemographic = Demographic.getDemographic(mangaJson.getJsonObject("attributes").getString("publicationDemographic", "none"));
+        this.status = Status.getStatus(mangaJson.getJsonObject("attributes").getString("status"));
         this.year = Long.parseLong(mangaJson.getJsonObject("attributes").getString("year", "1970"));
         this.imageUrl = null; // You can assign a value from mangaJson's "relationships" object if it exists
-        this.contentRating = mangaJson.getJsonObject("attributes").getString("contentRating");
+        this.contentRating = ContentRating.getContentRating(mangaJson.getJsonObject("attributes").getString("contentRating"));
         this.state = mangaJson.getJsonObject("attributes").getString("state");
         this.chapterNumbersResetOnNewVolume = mangaJson.getJsonObject("attributes").getBoolean("chapterNumbersResetOnNewVolume");
         this.createdAt = OffsetDateTime.parse(mangaJson.getJsonObject("attributes").getString("createdAt"));
         this.updatedAt = OffsetDateTime.parse(mangaJson.getJsonObject("attributes").getString("updatedAt"));
         this.version = mangaJson.getJsonObject("attributes").getJsonNumber("version").longValue();
         
-        this.latestUploadedChapterId = mangaJson.getJsonObject("attributes").getString("latestUploadedChapter");
+        this.latestUploadedChapterId = mangaJson.getJsonObject("attributes").getString("latestUploadedChapter", "none");
 
         // Parse tags
         
 
   }
 
+  
+
   @Override
   public String getId() {
-    return id;
+    return id.toString();
   }
 
+  public UUID getUUID(){
+    return id;
+  }
   @Override
   public OffsetDateTime getCreatedAt() {
     return createdAt;
@@ -149,15 +163,15 @@ public class Manga implements ISnowflake{
     return lastChapter;
   }
 
-  public String getContentRating(){
+  public ContentRating getContentRating(){
     return contentRating;
   }
 
-  public String getPublicationDemographic() {
+  public Demographic getPublicationDemographic() {
     return publicationDemographic;
   }
 
-  public String getStatus() {
+  public Status getStatus() {
     return status;
   }
 

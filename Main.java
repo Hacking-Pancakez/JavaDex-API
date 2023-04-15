@@ -1,18 +1,25 @@
 import dev.kurumiDisciples.javadex.api.requests.SearchAction;
 
-import dev.kurumiDisciples.javadex.api.manga.Manga;
+import dev.kurumiDisciples.javadex.api.manga.*;
 import dev.kurumiDisciples.javadex.api.entities.Chapter;
+
+import dev.kurumiDisciples.javadex.api.entities.enums.*;
 
 import java.util.List;
 
 class Main {
-  public static void main(String[] args) {
-    Manga DUO = SearchAction.getMangaById("ed996855-70de-449f-bba2-e8e24224c14d");
+  public static void main(String[] args) throws Exception {
+    System.out.println(new SearchAction("null")
+                    .setLimit(5)
+                    .search().get(0).getTitle());
+    /*
+    Manga DUO = SearchAction.getMangasByName("Attack On Titan").get(0);
     //System.out.println(DUO.getTitle() + "\n" + DUO.retrieveChaptersByLang("en", true).get(0).getTitle());
-    System.out.println(DUO.getTitle() + ": " + DUO.getContentRating());
+    System.out.println(DUO.getTitle() + " : " + DUO.getContentRating().getValue());
     List<Chapter> chapters = DUO.retrieveChaptersByLang("en", true);
-    /*for (Chapter chapter : chapters) {
-      System.out.println(chapter);
-    } */
+
+    chapters.forEach(chapter -> chapter.retrieveHashAsync());
+*/
+    
   }
 }
