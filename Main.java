@@ -13,15 +13,15 @@ class Main {
   public static void main(String[] args) throws Exception {
 
     
-    System.out.println(
+
       PageBuilder.getPages(
-        new SearchAction("Destiny")
-        .search().get(0)
-        .retrieveFeed()
+        new SearchAction("")
+        .search()
         .get(0)
-    )
-      .get(0).getUrl()
-    );
+        .retrieveChaptersByLang("en", true)
+        .get(0)
+    ).forEach(page -> System.out.println(page.getUrl()));
+
     /*
     Manga DUO = SearchAction.getMangasByName("Attack On Titan").get(0);
     //System.out.println(DUO.getTitle() + "\n" + DUO.retrieveChaptersByLang("en", true).get(0).getTitle());

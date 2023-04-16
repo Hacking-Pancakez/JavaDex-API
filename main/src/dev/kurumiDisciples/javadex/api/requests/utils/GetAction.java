@@ -107,8 +107,7 @@ public class GetAction {
             queryString.setLength(queryString.length() - 1);
         }
      
-
-        return "?" + queryString.toString().replace("%22", "").replace("%5B", "[").replace("%5D", "]");
+        return "?" + queryString.toString().replace("%22", "").replace("%5B", "[").replace("%5D", "]").replace("%25", "%");
     }
 
   private static String encodeUrlParameter(String parameter) {
