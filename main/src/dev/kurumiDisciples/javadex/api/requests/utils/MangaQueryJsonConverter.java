@@ -43,7 +43,7 @@ public class MangaQueryJsonConverter {
         if (excludedLanguages != null && !excludedLanguages.isEmpty()) builder.add("excludedLanguages[]", buildJsonArrayFromOriginalLanguages(excludedLanguages));
         if (availableTranslatedLanguages != null && !availableTranslatedLanguages.isEmpty()) builder.add("availableTranslatedLanguages[]", buildJsonArrayFromTranslatedLanguages(availableTranslatedLanguages));
         if (demographic != null) builder.add("demographic", demographic.toString());
-        if (contentRating != null) builder.add("contentRating", contentRating.toString());
+        if (contentRating != null) builder.add("contentRating[]", contentRating.toString());
         if (hasAvailableChapters != null) builder.add("hasAvailableChapters", hasAvailableChapters);
         return builder.build();
     }
@@ -66,7 +66,7 @@ public class MangaQueryJsonConverter {
         if (action.getExcludedLanguages() != null && !action.getExcludedLanguages().isEmpty()) builder.add("excludedLanguages[]", buildJsonArrayFromOriginalLanguages(action.getExcludedLanguages()));
         if (action.getAvailableTranslatedLanguages() != null && !action.getAvailableTranslatedLanguages().isEmpty()) builder.add("availableTranslatedLanguages[]", buildJsonArrayFromTranslatedLanguages(action.getAvailableTranslatedLanguages()));
         if (action.getDemographic() != null) builder.add("demographic", action.getDemographic().getValue());
-        if (action.getContentRating() != null) builder.add("contentRating", action.getContentRating().getValue());
+        if (action.getContentRating() != null) builder.add("contentRating[]", action.getContentRating().getValue());
         if (action.hasAvailableChapters() != null) builder.add("hasAvailableChapters", action.hasAvailableChapters());
         return builder.build();
     }
