@@ -1,3 +1,10 @@
 .classpath
 .project
 .settings/
+.replit
+replit.nix
+.upm
+target/
+Main.java
+Main.class
+

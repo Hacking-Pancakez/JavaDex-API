@@ -69,6 +69,10 @@ Retrieves a Manga object for the specified ID from MangaDex API.
     this.title = formatString(query);
   }
 
+  public SearchAction(){
+    this.title = null;
+  }
+
 
   public SearchAction(String query, int limit, int offset){
     this.title = query;

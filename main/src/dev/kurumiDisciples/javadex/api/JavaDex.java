@@ -37,6 +37,4 @@ public class JavaDex {
   public SearchAction findManga(){
     return new SearchAction("");
   }
-  
-  
 }
