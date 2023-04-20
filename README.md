@@ -37,7 +37,7 @@ public static void main(String[] args) throws Exception {
 ```java
 public static void main(String[] args) throws Exception {
     
-    Manga titan = new SearchAction("titan")
+    Manga titan = new SearchAction("Attack on Titan")
       .setLimit(1)
       .setOffset(1)
       .addTag(MangaTag.ACTION)
