@@ -45,8 +45,8 @@ Retrieves a Manga object for the specified ID from MangaDex API.
   private static String API_BASE_URL = "https://api.mangadex.org/manga";
 
   
-  private Integer limit;
-  private Integer offset;
+  private Integer limit; // 0 - 100
+  private Integer offset; // offset >= 0
   private String title;
   private UUID authorOrArtist; 
   private List<UUID> authors = new ArrayList<>();
@@ -83,6 +83,27 @@ Retrieves a Manga object for the specified ID from MangaDex API.
 
   public SearchAction addAuthor(UUID author){
     this.authors.add(author);
+    return this;
+  }
+
+  public SearchAction setLimit(Integer limit){
+    if (limit < 0 || limit > 100){
+      throw new IllegalArgumentException("Limit must be between 0 and 100");
+    }
+    this.limit = limit;
+    return this;
+  }
+
+  public SearchAction setQuery(String query){
+    this.title = formatString(query);
+    return this; 
+  }
+
+  public SearchAction setOffset(Integer offset){
+    if (offset < 0){
+      throw new IllegalArgumentException("Offset must be greater than or equal to 0");
+    }
+    this.offset = offset;
     return this;
   }
 

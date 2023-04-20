@@ -1,5 +1,7 @@
 package dev.kurumiDisciples.javadex.api;
 
+import dev.kurumiDisciples.javadex.api.requests.*;
+
 public class JavaDex {
 
 
@@ -18,4 +20,23 @@ public class JavaDex {
     this.sessionToken = null;
     this.expire = null;
   }
+
+
+  public GroupAction findGroup(String name){
+    return new GroupAction().setName(name);
+  }
+
+  public GroupAction findGroup(){
+    return new GroupAction();
+  }
+
+  public SearchAction findManga(String name){
+    return new SearchAction().setQuery(name);  
+  }
+
+  public SearchAction findManga(){
+    return new SearchAction("");
+  }
+  
+  
 }

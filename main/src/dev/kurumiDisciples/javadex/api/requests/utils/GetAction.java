@@ -106,7 +106,7 @@ public class GetAction {
         if (queryString.length() > 0) {
             queryString.setLength(queryString.length() - 1);
         }
-        System.out.println(queryString.toString().replace("%22", "").replace("%5B", "[").replace("%5D", "]").replace("%25", "%"));
+        //System.out.println(queryString.toString().replace("%22", "").replace("%5B", "[").replace("%5D", "]").replace("%25", "%"));
         return "?" + queryString.toString().replace("%22", "").replace("%5B", "[").replace("%5D", "]").replace("%25", "%");
     }
 
