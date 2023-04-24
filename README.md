@@ -37,7 +37,7 @@ public static void main(String[] args) throws Exception {
 ```java
 public static void main(String[] args) throws Exception {
     
-    Manga titan = new SearchAction("Attack on Titan")
+    Manga titan = new SearchAction("titan")
       .setLimit(1)
       .setOffset(1)
       .addTag(MangaTag.ACTION)
@@ -47,6 +47,28 @@ public static void main(String[] args) throws Exception {
     System.out.println(titan.getTitle());
   }
   ```
+## Downloading Pages
+Downloading pages is a simple task with JavaDex.
+1. First retrieve the manga you want.
+```java 
+JavaDex JD = JavaDexBuilder.createDefault(creditials, here).build();
+Manga titan = JD.findManga("Attack on Titan").search().get(0);
+```
+2. Then retrieve a chapter
+```java
+Chapter chapter = titan.retrieveFeed().get(0);
+```
+3. Then retrieve the pages
+```java 
+List<PageProxy> pages = chapter.retrievePages();
+```
+4. Download to File
+```java
+pages.forEach(page -> {
+    page.downloadToFile(new File("Page_"+page.getPageNumber()+".jpg"));
+});
+```
+
 ## Acknowledgements
 
  - [MangaDex API Reference Guide](https://api.mangadex.org/docs/swagger.html)
