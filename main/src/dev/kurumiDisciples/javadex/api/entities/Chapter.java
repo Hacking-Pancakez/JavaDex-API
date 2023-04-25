@@ -10,13 +10,17 @@ import javax.json.stream.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.List;
+
+import java.io.IOException;
 
 import dev.kurumiDisciples.javadex.api.manga.Manga;
 import dev.kurumiDisciples.javadex.api.entities.Relationships;
 
 import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
 
-import dev.kurumiDisciples.javadex.api.requests.HashAction;
+import dev.kurumiDisciples.javadex.api.requests.*;
+import dev.kurumiDisciples.javadex.api.entities.PageProxy;
 
 public class Chapter implements ISnowflake, IPublishable{
 
@@ -165,5 +169,20 @@ public class Chapter implements ISnowflake, IPublishable{
 
   private static boolean isError(JsonObject data){
     return data.getString("result").equals("error");
+  }
+
+  public List<PageProxy> retrievePages() {
+    try{
+    return PageBuilder.getPages(this);
+    }
+    catch (ErrorException e){
+      System.out.println("Error retrieving pages");
+      e.printStackTrace();
+      return null;
+    }
+    catch (IOException e){
+      e.printStackTrace();
+      return null;
+    }
   }
 }

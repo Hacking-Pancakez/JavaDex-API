@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.Files;
 
+import java.util.concurrent.CompletionException;
+
 public class PageProxy {
 
   private String pageNumber;
@@ -46,32 +48,28 @@ public class PageProxy {
 
 
   public CompletableFuture<Path> downloadToPath(Path path) {
-  CompletableFuture<Path> future = new CompletableFuture<>();
-
-  try {
-    InputStream in = download();
-    Path filePath = path.resolve(pageNumber + ".jpg");
-    Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
-    future.complete(filePath);
-  } catch (IOException e) {
-    future.completeExceptionally(e);
-  }
-
-  return future;
+  return CompletableFuture.supplyAsync(() -> {
+    try {
+      InputStream in = download();
+      Path filePath = path.resolve(pageNumber + ".jpg");
+      Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+      return filePath;
+    } catch (IOException e) {
+      throw new CompletionException(e);
+    }
+  });
 }
 
   public CompletableFuture<File> downloadToFile(File file) {
-  CompletableFuture<File> future = new CompletableFuture<>();
-
-  try {
-    InputStream in = download();
-    Path filePath = file.toPath();
-    Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
-    future.complete(file);
-  } catch (IOException e) {
-    future.completeExceptionally(e);
-  }
-
-  return future;
+  return CompletableFuture.supplyAsync(() -> {
+    try {
+      InputStream in = download();
+      Path filePath = file.toPath();
+      Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+      return file;
+    } catch (IOException e) {
+      throw new CompletionException(e);
+    }
+  });
 }
 }
