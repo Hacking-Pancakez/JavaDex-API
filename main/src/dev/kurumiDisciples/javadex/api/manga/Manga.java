@@ -210,7 +210,24 @@ public class Manga implements ISnowflake{
       return null;
     }
   }
+  
+  public List<UUID> retrieveChaptersIds(){
+    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/aggregate?translatedLanguage[]=en");
 
+    try{
+    JsonObject s = getAction.execute();  
+
+      List<UUID> chaptersList = parseIds(s);
+
+      return chaptersList;
+    }
+
+    catch (Exception e){
+      e.printStackTrace();
+      return null;
+    }
+  }
+  
   public List<Chapter> retrieveChaptersByLang(String lang){
     return retrieveChaptersByLang(lang, false);
   }
@@ -259,4 +276,24 @@ public class Manga implements ISnowflake{
   private static boolean isError(JsonObject response) {
     return response.getString("result").equals("error");
   }
+
+  private static List<UUID> parseIds(JsonObject jsonObject) {
+        List<UUID> uuids = new ArrayList<>();
+
+        JsonObject volumes = jsonObject.getJsonObject("volumes");
+
+        volumes.values().forEach(volume -> {
+            JsonObject chapters = volume.asJsonObject().getJsonObject("chapters");
+
+            chapters.values().forEach(chapter -> {
+                String id = chapter.asJsonObject().getString("id");
+
+                if (id != null) {
+                    uuids.add(UUID.fromString(id));
+                }
+            });
+        });
+
+        return uuids;
+    }
 }

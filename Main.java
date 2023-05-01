@@ -7,12 +7,17 @@ import dev.kurumiDisciples.javadex.api.entities.enums.*;
 
 import dev.kurumiDisciples.javadex.api.*;
 
+import java.util.concurrent.*;
+
 import java.util.List;
 
 import java.io.File;
 
 class Main {
   public static void main(String[] args) throws Exception {
+
+    JavaDex api = JavaDexBuilder.createDefault("username", "password").build();
     
+                                      
   }
 }

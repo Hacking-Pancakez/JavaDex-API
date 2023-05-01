@@ -1,7 +1,10 @@
 package dev.kurumiDisciples.javadex.api.entities.enums;
 
 public enum TranslatedLanguage {
-  ENGLISH("en");
+  ENGLISH("en"),
+  SPANISH("es"), 
+  GERMAN("de"),
+  GREEK("el");
 
   private final String language;
   

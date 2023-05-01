@@ -14,6 +14,11 @@ public class JavaDexBuilder {
     this.username = username;
     this.password = password;
   }
+
+  private JavaDexBuilder(){
+    this.username = null;
+    this.password = null;
+  }
   /*
   * creates a new instance of JavaDexBuilder
   * with the login creditials provided
@@ -22,13 +27,16 @@ public class JavaDexBuilder {
     return new JavaDexBuilder(username, password);
   }
 
+  public static JavaDexBuilder createGuest() {
+    return new JavaDexBuilder();
+      }
+
   public JavaDex build(){
     try{
     return new JavaDex(BuildAction.retrieveTokens(this));
     }
     catch (Exception e){
       System.out.println("Error while building the JavaDex");
-      e.printStackTrace();
       System.out.println("Building guest JavaDex");
     }
     return new JavaDex();

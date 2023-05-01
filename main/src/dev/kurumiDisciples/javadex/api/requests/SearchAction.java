@@ -326,17 +326,19 @@ Retrieves a Manga object for the specified ID from MangaDex API.
 
   
   
-  public static Manga getMangaById(String id) {
-    try {
-    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + id, Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
-    return new Manga(getAction.execute());
-    }
-    catch (Exception e) {
-      System.out.println("Unable to retrieve Manga");
-      e.printStackTrace();
-    }
-    return null;
-  }
+  public static CompletableFuture<Manga> getMangaById(String id) {
+    return CompletableFuture.supplyAsync(() -> {
+        try {
+            GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + id, Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
+            return new Manga(getAction.execute());
+        } catch (Exception e) {
+            System.out.println("Unable to retrieve Manga");
+            e.printStackTrace();
+            return null;
+        }
+    });
+}
+
 
   /**
 
@@ -344,25 +346,7 @@ Retrieves a Manga object for the specified ID from MangaDex API.
 * @param name a String representing the name of the manga.
 * @return a List of Manga objects containing information about the manga(s) with the specified name.
 */
-  public static List<Manga> getMangasByName(String name) {
-    try {
-      GetAction getAction = new GetAction("https://api.mangadex.org/manga?title=" + formatString(name));
-      JsonObject jsonObject = getAction.execute();
-      JsonArray jsonArray = jsonObject.getJsonArray("data");
-
-      List<Manga> mangaList = new java.util.ArrayList<Manga>();
-
-      for (int i = 0; i < jsonArray.size(); i++) {
-        mangaList.add(new Manga(jsonArray.getJsonObject(i)));
-      }
-      return mangaList;
-    }
-    catch (Exception e) {
-      System.out.println("Unable to retrieve Manga");
-      e.printStackTrace();
-    }
-    return null;
-  }
+  
 
   private static String formatString(String input) {
     StringBuilder output = new StringBuilder();
