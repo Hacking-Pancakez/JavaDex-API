@@ -93,7 +93,7 @@ public class JavaDex {
     GetAction action = new GetAction("https://api.mangadex.org/chapter/" + id.toString());
 
     try{
-    return new Chapter(action.execute());
+    return new Chapter(action.execute().getJsonObject("data"));
       }
     catch (Exception e){
       return null;

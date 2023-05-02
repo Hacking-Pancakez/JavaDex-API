@@ -45,7 +45,7 @@ public class Chapter implements ISnowflake, IPublishable{
     
     this.id = UUID.fromString(data.getString("id"));
     this.volume = Long.parseLong(attributes.getString("volume", "0"));
-    this.chapter = Double.parseDouble(attributes.getString("chapter"));
+    this.chapter = Double.parseDouble(attributes.getString("chapter", "0"));
     this.title = attributes.getString("title", "no_title");
     this.version = attributes.getJsonNumber("version").intValue();
     this.translatedLanguage = attributes.getString("translatedLanguage");
@@ -56,30 +56,6 @@ public class Chapter implements ISnowflake, IPublishable{
     this.publishedAt = OffsetDateTime.parse(attributes.getString("publishedAt", "2001-09-09T01:46:40Z"));
     this.readableAt = OffsetDateTime.parse(attributes.getString("readableAt", "2001-09-09T01:46:40Z"));
     this.hash = null;
-  }
-
-  public Chapter(JsonObject data, boolean retrieveHash){
-    if(!isChapterData(data)) throw new IllegalArgumentException("Invalid chapter data");
-
-    JsonObject attributes = data.getJsonObject("attributes");
-    
-    this.id = UUID.fromString(data.getString("id"));
-    this.volume = Long.parseLong(attributes.getString("volume", "0"));
-    this.chapter = Double.parseDouble(attributes.getString("chapter"));
-    this.title = attributes.getString("title", "no_title");
-    this.version = attributes.getJsonNumber("version").intValue();
-    this.translatedLanguage = attributes.getString("translatedLanguage");
-    this.pages = attributes.getJsonNumber("pages").intValue();
-    this.relationships = new Relationships(data.getJsonArray("relationships"));
-    this.createdAt = OffsetDateTime.parse(attributes.getString("createdAt","2001-09-09T01:46:40Z"));
-    this.updatedAt = OffsetDateTime.parse(attributes.getString("updatedAt", "2001-09-09T01:46:40Z"));
-    this.publishedAt = OffsetDateTime.parse(attributes.getString("publishedAt", "2001-09-09T01:46:40Z"));
-    this.readableAt = OffsetDateTime.parse(attributes.getString("readableAt", "2001-09-09T01:46:40Z"));
-    this.hash = null;
-
-    if(retrieveHash){
-      
-    }
   }
 
   /* will be avaliable with relationships support */

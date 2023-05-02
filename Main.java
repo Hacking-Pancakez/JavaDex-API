@@ -15,9 +15,6 @@ import java.io.File;
 
 class Main {
   public static void main(String[] args) throws Exception {
-
-    JavaDex api = JavaDexBuilder.createDefault("username", "password").build();
     
-                                      
   }
 }

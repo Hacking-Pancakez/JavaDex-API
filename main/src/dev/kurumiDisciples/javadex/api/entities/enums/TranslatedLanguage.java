@@ -4,7 +4,10 @@ public enum TranslatedLanguage {
   ENGLISH("en"),
   SPANISH("es"), 
   GERMAN("de"),
-  GREEK("el");
+  GREEK("el"),
+  FRENCH("fr"),
+  JAPANESE("ja"),
+  HINDI("hi");
 
   private final String language;
   

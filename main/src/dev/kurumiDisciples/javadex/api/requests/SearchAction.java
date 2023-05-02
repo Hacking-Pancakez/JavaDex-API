@@ -53,15 +53,15 @@ Retrieves a Manga object for the specified ID from MangaDex API.
   private List<UUID> artists = new ArrayList<>();
   private Integer year;
   private List<MangaTag> includedTags = new ArrayList<>();
-  private String includedTagsMode;
+  private Mode includedTagsMode;
   private List<MangaTag> excludedTags = new ArrayList<>();
-  private String excludedTagsMode;
+  private Mode excludedTagsMode;
   private Status status;
   private List<OriginalLanguage> originalLanguages = new ArrayList<>();
   private List<OriginalLanguage> excludedLanguages = new ArrayList<>();
   private List<TranslatedLanguage> availableTranslatedLanguages = new ArrayList<>();
   private Demographic demographic;
-  private ContentRating contentRating;
+  private List<ContentRating> contentRating = new ArrayList<>();
   private Boolean hasAvailableChapters;
 
 
@@ -131,12 +131,12 @@ Retrieves a Manga object for the specified ID from MangaDex API.
     return this;
   }
 
-  public SearchAction setIncludedTagsMode(String mode){
+  public SearchAction setIncludedTagsMode(Mode mode){
     this.includedTagsMode = mode;
     return this;
   }
 
-  public SearchAction setExcludedTagsMode(String mode){
+  public SearchAction setExcludedTagsMode(Mode mode){
     this.excludedTagsMode = mode;
     return this;
   }
@@ -171,8 +171,22 @@ Retrieves a Manga object for the specified ID from MangaDex API.
     return this;
   }
   
-  public SearchAction setContentRating(ContentRating contentRating){
-    this.contentRating = contentRating;
+  public SearchAction addContentRating(ContentRating contentRating){
+    //if the value is already in the list do not add it again
+    if (!this.contentRating.contains(contentRating)){
+      this.contentRating.add(contentRating);
+      return this;
+    }
+    return this;
+  }
+
+  public SearchAction addContentRatings(List<ContentRating> contentRatings){
+    //if the value is already in the list do not add it again
+    for (ContentRating contentRating : contentRatings){
+      if (!this.contentRating.contains(contentRating)){
+        this.contentRating.add(contentRating);
+      }
+    }
     return this;
   }
 
@@ -227,11 +241,11 @@ Retrieves a Manga object for the specified ID from MangaDex API.
     return year;
   }
   
-  public String getIncludedTagsMode() {
+  public Mode getIncludedTagsMode() {
     return includedTagsMode;
   }
   
-  public String getExcludedTagsMode() {
+  public Mode getExcludedTagsMode() {
     return excludedTagsMode;
   }
 
@@ -251,7 +265,7 @@ Retrieves a Manga object for the specified ID from MangaDex API.
     return demographic;
   }
 
-  public ContentRating getContentRating() {
+  public List<ContentRating> getContentRatings() {
     return contentRating;
   }
 

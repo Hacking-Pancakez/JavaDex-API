@@ -42,7 +42,7 @@ public class MangaQueryJsonConverter {
         if (originalLanguages != null && !originalLanguages.isEmpty()) builder.add("originalLanguages[]", buildJsonArrayFromOriginalLanguages(originalLanguages));
         if (excludedLanguages != null && !excludedLanguages.isEmpty()) builder.add("excludedLanguages[]", buildJsonArrayFromOriginalLanguages(excludedLanguages));
         if (availableTranslatedLanguages != null && !availableTranslatedLanguages.isEmpty()) builder.add("availableTranslatedLanguages[]", buildJsonArrayFromTranslatedLanguages(availableTranslatedLanguages));
-        if (demographic != null) builder.add("demographic", demographic.toString());
+        if (demographic != null) builder.add("demographic[]", demographic.toString());
         if (contentRating != null) builder.add("contentRating[]", contentRating.toString());
         if (hasAvailableChapters != null) builder.add("hasAvailableChapters", hasAvailableChapters);
         return builder.build();
@@ -58,15 +58,15 @@ public class MangaQueryJsonConverter {
         if (action.getArtists() != null && !action.getArtists().isEmpty()) builder.add("artists", buildJsonArrayFromUUIDs(action.getArtists()));
         if (action.getYear() != null) builder.add("year", String.valueOf(action.getYear()));
         if (action.getIncludedTags() != null && !action.getIncludedTags().isEmpty()) builder.add("includedTags[]", buildJsonArrayFromMangaTags(action.getIncludedTags()));
-        if (action.getIncludedTagsMode() != null) builder.add("includedTagsMode", action.getIncludedTagsMode());
+        if (action.getIncludedTagsMode() != null) builder.add("includedTagsMode", action.getIncludedTagsMode().getValue());
         if (action.getExcludedTags() != null && !action.getExcludedTags().isEmpty()) builder.add("excludedTags[]", buildJsonArrayFromMangaTags(action.getExcludedTags()));
-        if (action.getExcludedTagsMode() != null) builder.add("excludedTagsMode", action.getExcludedTagsMode());
+        if (action.getExcludedTagsMode() != null) builder.add("excludedTagsMode", action.getExcludedTagsMode().getValue());
         if (action.getStatus() != null) builder.add("status", action.getStatus().getValue());
         if (action.getOriginalLanguages() != null && !action.getOriginalLanguages().isEmpty()) builder.add("originalLanguages[]", buildJsonArrayFromOriginalLanguages(action.getOriginalLanguages()));
         if (action.getExcludedLanguages() != null && !action.getExcludedLanguages().isEmpty()) builder.add("excludedLanguages[]", buildJsonArrayFromOriginalLanguages(action.getExcludedLanguages()));
         if (action.getAvailableTranslatedLanguages() != null && !action.getAvailableTranslatedLanguages().isEmpty()) builder.add("availableTranslatedLanguages[]", buildJsonArrayFromTranslatedLanguages(action.getAvailableTranslatedLanguages()));
-        if (action.getDemographic() != null) builder.add("demographic", action.getDemographic().getValue());
-        if (action.getContentRating() != null) builder.add("contentRating[]", action.getContentRating().getValue());
+        if (action.getDemographic() != null) builder.add("publicationDemographic[]", action.getDemographic().getValue());
+        if (action.getContentRatings().size() != 0) builder.add("contentRating[]", buildJsonArrayFromContentRating(action.getContentRatings()));
         if (action.hasAvailableChapters() != null) builder.add("hasAvailableChapters", action.hasAvailableChapters());
         return builder.build();
     }
@@ -81,6 +81,15 @@ public class MangaQueryJsonConverter {
         return builder;
     }
 
+  private static JsonArrayBuilder buildJsonArrayFromContentRating(List < ContentRating > contentRatings) {
+    JsonArrayBuilder builder = Json.createArrayBuilder();
+    if (contentRatings!= null &&!contentRatings.isEmpty()) {
+      contentRatings.forEach(contentRating -> builder.add(contentRating.getValue()));
+      return builder;
+    }
+    return builder;
+  }
+  
     private static JsonArrayBuilder buildJsonArrayFromMangaTags(List < MangaTag > tags) {
         JsonArrayBuilder builder = Json.createArrayBuilder();
         for (MangaTag tag: tags) {

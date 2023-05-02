@@ -18,6 +18,7 @@ import javax.json.stream.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.concurrent.*;
 import java.util.Comparator;
 
 import java.io.IOException; 
@@ -75,6 +76,8 @@ public class Manga implements ISnowflake{
   private String[] availableTranslatedLanguages;
   
   private String latestUploadedChapterId;
+
+  private List<MangaTag> tags = new ArrayList<>();
 
   public Manga(JsonObject mangaJson) {
     JsonObject original = mangaJson;
@@ -211,14 +214,14 @@ public class Manga implements ISnowflake{
     }
   }
   
-  public List<UUID> retrieveChaptersIds(){
-    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/aggregate?translatedLanguage[]=en");
+  public List<UUID> retrieveChaptersIds(TranslatedLanguage lang){
+    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/aggregate?translatedLanguage[]=" + lang.getLanguage());
 
     try{
     JsonObject s = getAction.execute();  
-
+      
       List<UUID> chaptersList = parseIds(s);
-
+      Collections.reverse(chaptersList);
       return chaptersList;
     }
 
@@ -226,39 +229,64 @@ public class Manga implements ISnowflake{
       e.printStackTrace();
       return null;
     }
-  }
+  } 
   
-  public List<Chapter> retrieveChaptersByLang(String lang){
-    return retrieveChaptersByLang(lang, false);
+
+  public CompletableFuture<List<Chapter>> retrieveChaptersOrdered(TranslatedLanguage language){
+    return CompletableFuture.supplyAsync(() -> {
+      List<UUID> ids = retrieveChaptersIds(language);
+      List<Chapter> chapters = new ArrayList<>();
+      if (ids == null) return null;
+
+      for (UUID id : ids) {
+        try{
+        GetAction getAction = new GetAction("https://api.mangadex.org/chapter/" + id);
+        chapters.add(new Chapter(getAction.execute().getJsonObject("data")));
+        }
+        catch (Exception e){
+          e.printStackTrace();
+        }
+      }
+
+      return chapters;
+    });
   }
-  
-  public List<Chapter> retrieveChaptersByLang(String lang, boolean sort) {
-    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/feed?translatedLanguage[]=" + lang, Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
 
-    try{
-    JsonObject response = getAction.execute();
-    
-    if (isError(response)) throw new RuntimeException("Error retrieving manga feed: " + response.getJsonArray("errors").getJsonObject(0).getString("detail"));
-    JsonArray chapters = response.getJsonArray("data");
-
-    List<Chapter> chaptersList = new ArrayList<>();
-
-    for (int i = 0; i < chapters.size(); i++) {
-      JsonObject chapter = chapters.getJsonObject(i);
-      chaptersList.add(new Chapter(chapter));
-    } 
-    if (sort) chaptersList = sortChaptersByNumber(chaptersList);
-    return chaptersList;
-    }
-    catch (IOException e){
-      e.printStackTrace();
-      return null;
-    }
-    catch (ErrorException e){
-      e.printStackTrace();
-      return null;
-    }
+  public CompletableFuture<Chapter> retrieveChapterByNumber(TranslatedLanguage lang, int number) {
+  if (lang == null || number <= 0) {
+    return CompletableFuture.completedFuture(null);
   }
+
+  CompletableFuture<List<UUID>> idsFuture = CompletableFuture.supplyAsync(() -> retrieveChaptersIds(lang));
+
+  return idsFuture.thenComposeAsync(ids -> {
+    if (ids == null || ids.isEmpty() || number > ids.size()) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    UUID chapterId = ids.get(number - 1);
+    GetAction getAction = new GetAction("https://api.mangadex.org/chapter/" + chapterId);
+    CompletableFuture<JsonObject> responseFuture = CompletableFuture.supplyAsync(() -> {
+      try {
+        return getAction.execute().getJsonObject("data");
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+
+    return responseFuture.handle((jsonObject, throwable) -> {
+      if (throwable != null) {
+        throwable.printStackTrace();
+        return null;
+      }
+
+      return new Chapter(jsonObject);
+    });
+  }, Executors.newCachedThreadPool()).exceptionally(throwable -> {
+    throwable.printStackTrace();
+    return null;
+  });
+}
 
 
   private static List<Chapter> sortChaptersByNumber(List<Chapter> chapters) {
