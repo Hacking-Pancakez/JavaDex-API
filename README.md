@@ -32,21 +32,23 @@ public static void main(String[] args) throws Exception {
     System.out.println(titan.getTitle());
   }
   ```
-**Note: You don't always have to use the JavaDex object!!**
-
+## Retrieve a Specific Chapter
+The current method to retrieve a chapter is a bit complicated but will be refined later on.
 ```java
-public static void main(String[] args) throws Exception {
-    
-    Manga titan = new SearchAction("titan")
-      .setLimit(1)
-      .setOffset(1)
-      .addTag(MangaTag.ACTION)
-      .search()
-      .get(0);
+public static void main(String[] args) throws Exception{
 
-    System.out.println(titan.getTitle());
-  }
-  ```
+    JavaDex JD = JavaDexBuilder.createDefault(username, password).build();
+
+    Manga titan = JD.findManga("Attack On Titan")
+      .setLimit(1)
+      .addTag(MangaTag.ACTION)
+      .search().get(0);
+
+    CompletableFuture<Chapter> c = titan.retrieveChapterByNumber(TranslatedLanguage.ENGLISH, 1); // starts at 1
+
+    System.out.println(c.get().getTitle());
+}
+```
 ## Downloading Pages
 Downloading pages is a simple task with JavaDex.
 1. First retrieve the manga you want.

@@ -77,8 +77,6 @@ public class Manga implements ISnowflake{
   
   private String latestUploadedChapterId;
 
-  private List<MangaTag> tags = new ArrayList<>();
-
   public Manga(JsonObject mangaJson) {
     JsonObject original = mangaJson;
     try {
