@@ -4,6 +4,12 @@ import dev.kurumiDisciples.javadex.api.requests.*;
 import dev.kurumiDisciples.javadex.api.manga.*;
 
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
+import java.time.Duration;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.json.*;
 import javax.json.stream.*;
@@ -11,6 +17,8 @@ import javax.json.stream.*;
 import dev.kurumiDisciples.javadex.api.entities.Chapter;
 
 import dev.kurumiDisciples.javadex.api.requests.utils.GetAction;
+
+import dev.kurumiDisciples.javadex.api.listeners.*;
 
 import java.util.concurrent.*;
 /*Represents a logged in session of the MangaDex API*/
@@ -21,23 +29,34 @@ public class JavaDex {
   protected String sessionToken;
   protected String expire;
   protected boolean loggedIn = false;
+  private Duration refreshRate; 
+
+  private static final Logger LOGGER = Logger.getLogger(JavaDex.class.getName());
+
+  private List<ListenerImpl> listeners = new ArrayList<>();
+
+  private List<Manga> checkManga = new ArrayList<>();
 
   private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
   private ScheduledExecutorService scheduler;
 
-  protected JavaDex(String[] tokens){
+  protected JavaDex(String[] tokens, Duration refreshTime){
     this.refreshToken = tokens[2];
     this.sessionToken = tokens[0];
     this.expire = tokens[1];
     startScheduler();
     loggedIn = true;
+    refreshRate = refreshTime;
+    MangaChecker.startChecker(this);
   }
 
-  protected JavaDex(){
+  protected JavaDex(Duration refreshTime){
     this.refreshToken = null;
     this.sessionToken = null;
     this.expire = null;
+    refreshRate = refreshTime;
+    MangaChecker.startChecker(this);
   }
 
   private void startScheduler() {
@@ -46,15 +65,13 @@ public class JavaDex {
         Runnable task = new Runnable() {
             @Override
             public void run() {
-              try{
-                String[] tokens = BuildAction.refreshTokens(refreshToken);
-                sessionToken = tokens[0];
-                refreshToken = tokens[1];
-              }
-              catch (Exception e){
-                System.out.println("Error while refreshing the tokens");
-                e.printStackTrace();
-              }
+                try {
+                    String[] tokens = BuildAction.refreshTokens(refreshToken);
+                    sessionToken = tokens[0];
+                    refreshToken = tokens[1];
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Error while refreshing the tokens", e);
+                }
             }
         };
 
@@ -109,5 +126,23 @@ public class JavaDex {
     JsonObjectBuilder header = Json.createObjectBuilder();
     header.add("Authorization", "Bearer " + sessionToken);
     return header.build();
+  }
+
+  public JavaDex addEventListeners(ListenerImpl listener){
+    listeners.add(listener);
+    return this;
+  }
+
+  public JavaDex addMangaToCheck(Manga manga){
+    MangaChecker.addToUpdateList(manga);
+    return this;
+  }
+
+  public Duration getRefreshRate(){
+    return refreshRate;
+  }
+
+  public List<ListenerImpl> getListeners(){
+    return listeners;
   }
 }

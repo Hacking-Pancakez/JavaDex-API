@@ -29,7 +29,7 @@ public class Chapter implements ISnowflake, IPublishable{
   private final double chapter;
   private final String title; 
   private final int version;
-  private final String translatedLanguage;
+  private final TranslatedLanguage translatedLanguage;
   private final int pages;
   private final Relationships relationships;
   private final OffsetDateTime createdAt;
@@ -48,7 +48,8 @@ public class Chapter implements ISnowflake, IPublishable{
     this.chapter = Double.parseDouble(attributes.getString("chapter", "0"));
     this.title = attributes.getString("title", "no_title");
     this.version = attributes.getJsonNumber("version").intValue();
-    this.translatedLanguage = attributes.getString("translatedLanguage");
+    //change to the enum
+    this.translatedLanguage = TranslatedLanguage.getByLanguage(attributes.getString("translatedLanguage"));
     this.pages = attributes.getJsonNumber("pages").intValue();
     this.relationships = new Relationships(data.getJsonArray("relationships"));
     this.createdAt = OffsetDateTime.parse(attributes.getString("createdAt","2001-09-09T01:46:40Z"));
@@ -108,7 +109,7 @@ public class Chapter implements ISnowflake, IPublishable{
     return version;
   }
 
-  public String getTranslatedLanguage() {
+  public TranslatedLanguage getTranslatedLanguage() {
     return translatedLanguage;
   }
 
@@ -148,17 +149,6 @@ public class Chapter implements ISnowflake, IPublishable{
   }
 
   public List<PageProxy> retrievePages() {
-    try{
     return PageBuilder.getPages(this);
-    }
-    catch (ErrorException e){
-      System.out.println("Error retrieving pages");
-      e.printStackTrace();
-      return null;
-    }
-    catch (IOException e){
-      e.printStackTrace();
-      return null;
-    }
   }
 }

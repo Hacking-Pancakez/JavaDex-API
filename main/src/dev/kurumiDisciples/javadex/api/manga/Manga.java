@@ -69,6 +69,8 @@ public class Manga implements ISnowflake{
 
   private OffsetDateTime createdAt;
 
+  private JsonObject original;
+
   private OffsetDateTime updatedAt;
 
   private long version;
@@ -78,7 +80,7 @@ public class Manga implements ISnowflake{
   private String latestUploadedChapterId;
 
   public Manga(JsonObject mangaJson) {
-    JsonObject original = mangaJson;
+    this.original = mangaJson;
     try {
     mangaJson = mangaJson.getJsonObject("data");
     this.id = UUID.fromString(mangaJson.getString("id"));
@@ -180,8 +182,8 @@ public class Manga implements ISnowflake{
     return year;
   }
 
-  public String getLatestUploadedChapterId() {
-    return latestUploadedChapterId;
+  public UUID getLatestUploadedChapterId() {
+    return UUID.fromString(latestUploadedChapterId);
   }
 
 
