@@ -32,7 +32,10 @@ public class JavaDexBuilder {
     try {
       return new JavaDex(BuildAction.retrieveTokens(this), refreshRate);
     } catch (Exception e) {
-      LOGGER.log(Level.WARNING, "Error while building the JavaDex", e);
+      // Check if username and password are empty
+      if (username.isPresent() && password.isPresent()) {
+        LOGGER.log(Level.WARNING, "Error while building the JavaDex", e);
+      }
       LOGGER.info("Building guest JavaDex");
       return new JavaDex(refreshRate);
     }

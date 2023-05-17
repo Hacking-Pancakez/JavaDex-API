@@ -1,4 +1,4 @@
-package dev.kurumiDisciples.javadex.api.listeners;
+package dev.kurumiDisciples.javadex.api.listeners.checkers;
 
 import dev.kurumiDisciples.javadex.api.JavaDex;
 import dev.kurumiDisciples.javadex.api.manga.Manga;
@@ -12,8 +12,8 @@ import java.time.OffsetDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MangaChecker {
-  private static final Logger LOGGER = Logger.getLogger(MangaChecker.class.getName());
+public class NewChapterChecker {
+  private static final Logger LOGGER = Logger.getLogger(NewChapterChecker.class.getName());
   private static Map<Manga, UUID> updateList = new HashMap<>();
   private static JavaDex api;
   private static ScheduledExecutorService scheduler;
@@ -49,12 +49,21 @@ public class MangaChecker {
   }
 
   private static void notifyNewChapterListeners(UUID newChapterId){
-    api.getListeners().forEach(listener -> listener.onNewChapterEvent(
-      new NewChapterEvent(
-        api, 
-        OffsetDateTime.now(),
-        api.getChapterById(newChapterId)
-      )
-    ));
-  }
+    api.getChapterById(newChapterId)
+    .handle((newChapter, ex) -> {
+        if (newChapter == null) {
+            LOGGER.log(Level.SEVERE, "Error getting chapter", ex);
+            return null;
+        } else {
+            api.getListeners().forEach(listener -> listener.onNewChapterEvent(
+                new NewChapterEvent(
+                    api, 
+                    OffsetDateTime.now(),
+                    newChapter
+                )
+            ));
+            return null;
+        }
+    });
+}
 }

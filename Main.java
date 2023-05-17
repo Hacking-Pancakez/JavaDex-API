@@ -29,8 +29,6 @@ public class Main extends ListenerImpl {
 
   @Override
   public void onNewChapterEvent(NewChapterEvent event) {
-    if (event.getChapter().getTranslatedLanguage().equals(TranslatedLanguage.ENGLISH)) {
       System.out.println(event.getChapter().getTitle());
-    }
   }
 }

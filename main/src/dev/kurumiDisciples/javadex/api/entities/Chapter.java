@@ -121,24 +121,6 @@ public class Chapter implements ISnowflake, IPublishable{
     return relationships;
   }
 
-
-
-  private void retrieveHash(){
-    if (hash == null) {
-      try{
-      hash = HashAction.getHash(this);
-      }
-      catch (Exception e){
-        System.out.println("Failure to retrieve hash");
-        e.printStackTrace();
-      }
-    }
-  }
-
-
-  public String getHash(){
-    return hash;
-  }
   
   private static boolean isChapterData(JsonObject data){
     return data.getString("type").equals("chapter");

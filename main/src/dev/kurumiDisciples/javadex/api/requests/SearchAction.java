@@ -296,49 +296,33 @@ Retrieves a Manga object for the specified ID from MangaDex API.
   }
 
   public CompletableFuture<List<Manga>> submit() {
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        return search();
-      } catch (ErrorException | IOException e) {
-        throw new CompletionException(e);
-      }
-    });
-}
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return search();
+            } catch (ErrorException | IOException e) {
+                throw new CompletionException(e);
+            }
+        });
+    }
 
+    private List<Manga> search() throws ErrorException, IOException {
+        JsonObject param = MangaQueryJsonConverter.toJson(this);
+        GetAction get = new GetAction(API_BASE_URL, Json.createObjectBuilder().build(), param);
+        JsonObject response = get.execute();
 
+        JsonArray data = response.getJsonArray("data");
+        List<Manga> mangaList = new ArrayList<>();
 
-  public List<Manga> search() throws ErrorException, IOException{
-    
-    JsonObject param = MangaQueryJsonConverter.toJson(this);
-    
-    GetAction get = new GetAction(API_BASE_URL, Json.createObjectBuilder().build(), param);
+        for (int i = 0; i < data.size(); i++) {
+            mangaList.add(new Manga(data.getJsonObject(i)));
+        }
 
-    JsonObject response = get.execute();
-
-    JsonArray data = response.getJsonArray("data");
-
-    List<Manga> mangaList = new ArrayList<>();
-    
-    for (int i = 0; i < data.size(); i++) {
-        mangaList.add(new Manga(data.getJsonObject(i)));
-      }
-      return mangaList;
-  }
+        return mangaList;
+    }
 
   public String debug(){
     return MangaQueryJsonConverter.toJson(this).toString();
   }
-
-
-
-
-
-
-
-
-
-
-  
   
   public static CompletableFuture<Manga> getMangaById(String id) {
     return CompletableFuture.supplyAsync(() -> {
@@ -353,13 +337,6 @@ Retrieves a Manga object for the specified ID from MangaDex API.
     });
 }
 
-
-  /**
-
-* Retrieves a list of Manga objects containing the specified name from MangaDex API.
-* @param name a String representing the name of the manga.
-* @return a List of Manga objects containing information about the manga(s) with the specified name.
-*/
   
 
   private static String formatString(String input) {

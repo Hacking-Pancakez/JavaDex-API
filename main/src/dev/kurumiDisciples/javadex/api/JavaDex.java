@@ -19,6 +19,7 @@ import dev.kurumiDisciples.javadex.api.entities.Chapter;
 import dev.kurumiDisciples.javadex.api.requests.utils.GetAction;
 
 import dev.kurumiDisciples.javadex.api.listeners.*;
+import dev.kurumiDisciples.javadex.api.listeners.checkers.*;
 
 import java.util.concurrent.*;
 /*Represents a logged in session of the MangaDex API*/
@@ -41,6 +42,7 @@ public class JavaDex {
 
   private ScheduledExecutorService scheduler;
 
+
   protected JavaDex(String[] tokens, Duration refreshTime){
     this.refreshToken = tokens[2];
     this.sessionToken = tokens[0];
@@ -48,7 +50,7 @@ public class JavaDex {
     startScheduler();
     loggedIn = true;
     refreshRate = refreshTime;
-    MangaChecker.startChecker(this);
+    startCheckers();
   }
 
   protected JavaDex(Duration refreshTime){
@@ -56,7 +58,7 @@ public class JavaDex {
     this.sessionToken = null;
     this.expire = null;
     refreshRate = refreshTime;
-    MangaChecker.startChecker(this);
+    startCheckers();
   }
 
   private void startScheduler() {
@@ -70,7 +72,7 @@ public class JavaDex {
                     sessionToken = tokens[0];
                     refreshToken = tokens[1];
                 } catch (Exception e) {
-                    LOGGER.log(Level.SEVERE, "Error while refreshing the tokens", e);
+                    LOGGER.log(Level.SEVERE, "Error while refreshing login tokens", e);
                 }
             }
         };
@@ -106,16 +108,17 @@ public class JavaDex {
     return new FeedAction(getHeader());
   }
 
-  public Chapter getChapterById(UUID id){
-    GetAction action = new GetAction("https://api.mangadex.org/chapter/" + id.toString());
+  public CompletableFuture<Chapter> getChapterById(UUID id) {
+    return CompletableFuture.supplyAsync(() -> {
+        GetAction action = new GetAction("https://api.mangadex.org/chapter/" + id.toString());
 
-    try{
-    return new Chapter(action.execute().getJsonObject("data"));
-      }
-    catch (Exception e){
-      return null;
-    }
-  }  
+        try {
+            return new Chapter(action.execute().getJsonObject("data"));
+        } catch (Exception e) {
+            throw new CompletionException(e);
+        }
+    });
+}
 
   public boolean isLoggedIn(){
     return loggedIn;
@@ -133,8 +136,13 @@ public class JavaDex {
     return this;
   }
 
+  public JavaDex addEventListeners(List<ListenerImpl> listeners){
+    this.listeners.addAll(listeners);
+    return this;
+  }
+
   public JavaDex addMangaToCheck(Manga manga){
-    MangaChecker.addToUpdateList(manga);
+    NewChapterChecker.addToUpdateList(manga);
     return this;
   }
 
@@ -144,5 +152,9 @@ public class JavaDex {
 
   public List<ListenerImpl> getListeners(){
     return listeners;
+  }
+
+  private void startCheckers(){
+    NewChapterChecker.startChecker(this);
   }
 }
