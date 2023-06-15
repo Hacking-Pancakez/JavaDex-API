@@ -14,15 +14,14 @@ import java.util.logging.Logger;
 
 public class FeedUpdateChecker {
   private static final Logger LOGGER = Logger.getLogger(FeedUpdateChecker.class.getName());
-  private static ScheduledExecutorService scheduler;
-  private static final Map<JavaDex, List<Chapter>> updateList = new HashMap<>();
+  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+  private static final Map<JavaDex, List<Chapter>> updateList = new ConcurrentHashMap<>();
 
   public static void addToUpdateList(JavaDex javadex) {
     updateList.put(javadex, javadex.requestMyFeed().retrieve());
   }
 
   public static void startChecker(JavaDex javadex) {
-    scheduler = Executors.newScheduledThreadPool(1);
     long refreshRate = javadex.getRefreshRate().getSeconds();
 
     Runnable task = () -> {
@@ -32,8 +31,12 @@ public class FeedUpdateChecker {
         
         List<Chapter> updatedFeed = api.requestMyFeed().setLimit(100).retrieve();
 
-        if (updatedFeed.get(0).getId().equals(chapters.get(0).getId())) {
-          updateList.remove(api);
+        if (updatedFeed == null || updatedFeed.isEmpty()) {
+          LOGGER.log(Level.WARNING, "Updated feed is empty or null");
+          return;
+        }
+        
+        if (!updatedFeed.get(0).getId().equals(chapters.get(0).getId())) {
           updateList.put(api, updatedFeed);
           notifyFeedUpdateEvents(api, updatedFeed);
         }
@@ -43,12 +46,10 @@ public class FeedUpdateChecker {
     scheduler.scheduleAtFixedRate(task, 0, refreshRate, TimeUnit.SECONDS);
   }
 
-  private static void notifyFeedUpdateEvents(JavaDex api, List<Chapter> feed){
+  public static void notifyFeedUpdateEvents(JavaDex api, List<Chapter> feed){
     List<ListenerImpl> listeners = api.getListeners();
     FeedUpdateEvent event = new FeedUpdateEvent(api, feed, OffsetDateTime.now());
 
-    for (ListenerImpl listener : listeners){
-      listener.onFeedUpdateEvent(event);
-    }
+    listeners.forEach(listener -> listener.onFeedUpdateEvent(event));
   }
 }
