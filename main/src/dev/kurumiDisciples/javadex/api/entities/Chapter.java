@@ -11,6 +11,7 @@ import javax.json.stream.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.List;
+import java.util.concurrent.*;
 
 import java.io.IOException;
 
@@ -21,6 +22,8 @@ import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
 
 import dev.kurumiDisciples.javadex.api.requests.*;
 import dev.kurumiDisciples.javadex.api.entities.PageProxy;
+
+import dev.kurumiDisciples.javadex.api.entities.relationship.RelationshipMap;
 
 public class Chapter implements ISnowflake, IPublishable{
 
@@ -36,6 +39,7 @@ public class Chapter implements ISnowflake, IPublishable{
   private final OffsetDateTime updatedAt;
   private final OffsetDateTime publishedAt;
   private final OffsetDateTime readableAt;
+  private final RelationshipMap relationshipMap;
   private String hash;
 
   public Chapter(JsonObject data){
@@ -56,12 +60,17 @@ public class Chapter implements ISnowflake, IPublishable{
     this.updatedAt = OffsetDateTime.parse(attributes.getString("updatedAt", "2001-09-09T01:46:40Z"));
     this.publishedAt = OffsetDateTime.parse(attributes.getString("publishedAt", "2001-09-09T01:46:40Z"));
     this.readableAt = OffsetDateTime.parse(attributes.getString("readableAt", "2001-09-09T01:46:40Z"));
+    this.relationshipMap = new RelationshipMap(data.getJsonArray("relationships"));
     this.hash = null;
   }
 
   /* will be avaliable with relationships support */
-  private Manga retrieveOriginManga(){
-    return null;
+  public CompletableFuture<Manga> retrieveOriginManga(){
+    return SearchAction.getMangaById(getRelationshipMap().get(RelationshipType.MANGA).get(0).toString());
+  }
+
+  public RelationshipMap getRelationshipMap() {
+    return relationshipMap;
   }
 
   public long getVolume() {

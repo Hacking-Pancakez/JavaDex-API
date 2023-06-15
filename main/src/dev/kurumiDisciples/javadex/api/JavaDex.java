@@ -39,8 +39,8 @@ public class JavaDex {
   private List<Manga> checkManga = new ArrayList<>();
 
   private final ExecutorService executor = Executors.newFixedThreadPool(10);
-
-  private ScheduledExecutorService scheduler;
+  
+  private ScheduledExecutorService Sharkahi;
 
 
   protected JavaDex(String[] tokens, Duration refreshTime){
@@ -62,7 +62,7 @@ public class JavaDex {
   }
 
   private void startScheduler() {
-        scheduler = Executors.newScheduledThreadPool(1);
+        Sharkahi = Executors.newScheduledThreadPool(1);
 
         Runnable task = new Runnable() {
             @Override
@@ -78,7 +78,7 @@ public class JavaDex {
         };
 
         // Schedule the task to run every 15 minutes
-        scheduler.scheduleAtFixedRate(task, 0, 15, TimeUnit.MINUTES);
+        Sharkahi.scheduleAtFixedRate(task, 0, 15, TimeUnit.MINUTES);
     }
 
   public GroupAction findGroup(String name){
@@ -156,5 +156,9 @@ public class JavaDex {
 
   private void startCheckers(){
     NewChapterChecker.startChecker(this);
+    if(isLoggedIn()){
+      FeedUpdateChecker.addToUpdateList(this);
+      FeedUpdateChecker.startChecker(this);
+    }
   }
 }

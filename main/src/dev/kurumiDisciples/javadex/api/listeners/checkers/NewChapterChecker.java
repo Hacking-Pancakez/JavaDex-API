@@ -3,6 +3,7 @@ package dev.kurumiDisciples.javadex.api.listeners.checkers;
 import dev.kurumiDisciples.javadex.api.JavaDex;
 import dev.kurumiDisciples.javadex.api.manga.Manga;
 import dev.kurumiDisciples.javadex.api.events.NewChapterEvent;
+import dev.kurumiDisciples.javadex.api.entities.Chapter;
 
 import java.util.UUID;
 import java.util.Map;
@@ -34,8 +35,8 @@ public class NewChapterChecker {
           UUID id = entry.getValue();
 
           Manga newUpdated = api.getMangaById(manga.getId()).get();
-
           if (!newUpdated.getLatestUploadedChapterId().toString().equals(id.toString())) {
+            updateList.remove(manga);
             updateList.put(newUpdated, newUpdated.getLatestUploadedChapterId());
             notifyNewChapterListeners(newUpdated.getLatestUploadedChapterId());
           }

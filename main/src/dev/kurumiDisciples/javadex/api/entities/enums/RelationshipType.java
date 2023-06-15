@@ -5,6 +5,8 @@ public enum RelationshipType{
   AUTHOR("author"),
   GROUP("scanlation_group"),
   MANGA("manga"),
+  LEADER("leader"),
+  MEMBER("member"),
   USER("user");
 
   private final String type;
