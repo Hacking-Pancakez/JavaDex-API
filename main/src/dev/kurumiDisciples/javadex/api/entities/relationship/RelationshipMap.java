@@ -27,7 +27,7 @@ public class RelationshipMap extends HashMap<RelationshipType, List<UUID>> {
             if (type == null) {
                 continue; // or throw an exception, depending on your requirements
             }
-            List<UUID> uuids = map.getOrDefault(type, new ArrayList<>());
+            List<UUID> uuids = map.getOrDefault(type, null);
             uuids.add(id);
             map.put(type, uuids);
         }

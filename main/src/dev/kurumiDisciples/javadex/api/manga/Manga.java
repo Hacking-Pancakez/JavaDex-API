@@ -6,6 +6,7 @@ import dev.kurumiDisciples.javadex.api.entities.ISnowflake;
 import dev.kurumiDisciples.javadex.api.entities.Chapter;
 
 import dev.kurumiDisciples.javadex.api.entities.enums.*;
+import dev.kurumiDisciples.javadex.api.entities.relationship.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -79,6 +80,8 @@ public class Manga implements ISnowflake{
   
   private String latestUploadedChapterId;
 
+  private final RelationshipMap relationshipMap;
+
   public Manga(JsonObject mangaJson) {
     this.original = mangaJson;
     try {
@@ -108,13 +111,13 @@ public class Manga implements ISnowflake{
         this.version = mangaJson.getJsonObject("attributes").getJsonNumber("version").longValue();
         
         this.latestUploadedChapterId = mangaJson.getJsonObject("attributes").getString("latestUploadedChapter", "none");
-
+        this.relationshipMap = new RelationshipMap(mangaJson.getJsonArray("relationships"));
         // Parse tags
-        
-
   }
 
-  
+  public RelationshipMap getRelationshipMap(){
+    return relationshipMap;
+  }
 
   @Override
   public String getId() {

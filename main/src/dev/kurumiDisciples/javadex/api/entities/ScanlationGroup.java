@@ -2,7 +2,7 @@ package dev.kurumiDisciples.javadex.api.entities;
 
 
 import dev.kurumiDisciples.javadex.api.entities.ISnowflake;
-import dev.kurumiDisciples.javadex.api.entities.Relationships;
+import dev.kurumiDisciples.javadex.api.entities.relationship.RelationshipMap;
 import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class ScanlationGroup implements ISnowflake {
   private Integer version;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
-  private Relationships relationships;
+  private RelationshipMap relationshipMap;
 
 
 
@@ -58,6 +58,7 @@ public class ScanlationGroup implements ISnowflake {
     this.version = attributes.getInt("version");
     this.createdAt = OffsetDateTime.parse(attributes.getString("createdAt"));
     this.updatedAt = OffsetDateTime.parse(attributes.getString("updatedAt"));
+    this.relationshipMap = new RelationshipMap(jsonObject.getJsonArray("relationships"));
   }
 
   
