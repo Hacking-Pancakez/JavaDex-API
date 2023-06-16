@@ -25,7 +25,7 @@ public class Main extends ListenerImpl {
   //add logger 
   private static Logger logger = Logger.getLogger(Main.class.getName());
   public static void main(String[] args) throws Exception  {
-    JavaDex api = JavaDexBuilder.createDefault("EJEvan1", "gameband")
+    JavaDex api = JavaDexBuilder.createDefault("", "")
       .setEventRefresh(Duration.ofSeconds(10))
       .build();
     api.addEventListeners(new Main());
