@@ -54,7 +54,7 @@ public class JavaDexBuilder {
     return this;
   }
 
-  public JavaDexBuilder shouldListenToFeedUpdate(boolean listen) {
+  public JavaDexBuilder setFeedListenEnabled(boolean listen) {
     feedListen = listen;
     return this;
   }

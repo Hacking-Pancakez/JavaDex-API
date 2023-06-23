@@ -22,13 +22,26 @@ import java.util.logging.*;
 import java.io.File;
 
 public class Main extends ListenerImpl {
-  //add logger 
   private static Logger logger = Logger.getLogger(Main.class.getName());
   public static void main(String[] args) throws Exception  {
-    JavaDex api = JavaDexBuilder.createDefault("", "")
+    JavaDex api = JavaDexBuilder.createGuest()
       .setEventRefresh(Duration.ofSeconds(10))
       .build();
-    api.addEventListeners(new Main());
+    api.registerEventListeners(new Main());
+
+    
+    
+   // api.addEventListeners(new Main());
+    Manga DUO = api.searchMangaByName("Attack On Titan")
+      .setLimit(1)
+      .submit()
+      .get()
+      .get(0);
+    
+    api.enqueueMangaForChecking(DUO);
+    System.out.println(DUO.retrieveChaptersIds(TranslatedLanguage.ENGLISH).get().size());
+    System.out.println(DUO.getTitle());
+    
   }
 
   @Override
@@ -40,7 +53,7 @@ public class Main extends ListenerImpl {
   public void onFeedUpdateEvent(FeedUpdateEvent event) {
    try{
     System.out.println(event.getFeed().get(0).getId());
-    System.out.println(event.getFeed().get(0).retrieveOriginManga().get().getTitle());
+    System.out.println(event.getFeed().get(0).getAssociatedManga().get().getTitle());
    }
     catch (Exception e){
       System.out.println("error");

@@ -19,9 +19,16 @@ public enum Role {
     this.id = id;
   }
 
-  public static Role getRole(String id) {
-    return Role.valueOf(id);
+  public String getId() {
+    return id;
   }
 
-
+  public static Role getRole(String id) {
+    for (Role role : Role.values()) {
+      if (role.getId().equals(id)) {
+        return role;
+      }
+    }
+    return null;
+  }
 }

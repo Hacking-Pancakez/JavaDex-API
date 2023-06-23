@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 
 import javax.json.*;
 import javax.json.stream.*;
@@ -25,7 +26,7 @@ import java.util.Comparator;
 import java.io.IOException; 
 
 import dev.kurumiDisciples.javadex.api.requests.utils.GetAction;
-import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
+import dev.kurumiDisciples.javadex.api.exceptions.*;
 
 public class Manga implements ISnowflake{
 
@@ -190,106 +191,125 @@ public class Manga implements ISnowflake{
   }
 
 
-  public List<Chapter> retrieveFeed() {
-    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/feed", Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
+  public CompletableFuture<List<Chapter>> retrieveFeed() {
+    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/feed");
 
-    try{
-    JsonObject response = getAction.execute();
-    
-    if (isError(response)) throw new RuntimeException("Error retrieving manga feed: " + response.getJsonArray("errors").getJsonObject(0).getString("detail"));
-    JsonArray chapters = response.getJsonArray("data");
-
-    List<Chapter> chaptersList = new ArrayList<>();
-
-    for (int i = 0; i < chapters.size(); i++) {
-      JsonObject chapter = chapters.getJsonObject(i);
-      chaptersList.add(new Chapter(chapter));
-    } 
-    return chaptersList;
-    }
-    catch (IOException e){
-      e.printStackTrace();
-      return null;
-    }
-    catch (ErrorException e){
-      e.printStackTrace();
-      return null;
-    }
-  }
-  
-  public List<UUID> retrieveChaptersIds(TranslatedLanguage lang){
-    GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/aggregate?translatedLanguage[]=" + lang.getLanguage());
-
-    try{
-    JsonObject s = getAction.execute();  
-      
-      List<UUID> chaptersList = parseIds(s);
-      Collections.reverse(chaptersList);
-      return chaptersList;
-    }
-
-    catch (Exception e){
-      e.printStackTrace();
-      return null;
-    }
-  } 
-  
-
-  public CompletableFuture<List<Chapter>> retrieveChaptersOrdered(TranslatedLanguage language){
     return CompletableFuture.supplyAsync(() -> {
-      List<UUID> ids = retrieveChaptersIds(language);
-      List<Chapter> chapters = new ArrayList<>();
-      if (ids == null) return null;
+        try {
+            JsonObject response = getAction.execute();
+            
+            if (isError(response)) 
+                throw new RuntimeException("Error retrieving manga feed: " + 
+                                           response.getJsonArray("errors")
+                                                   .getJsonObject(0)
+                                                   .getString("detail"));
+            JsonArray chapters = response.getJsonArray("data");
+            
+            List<Chapter> chaptersList = new ArrayList<>();
+            
+            for (JsonValue jsonValue : chapters) {
+                chaptersList.add(new Chapter((JsonObject) jsonValue));
+            }
+            return chaptersList;
+        } catch (IOException | ErrorException | RateLimitException e) {
+            e.printStackTrace();
+            throw new CompletionException(e); // wrap the exception to properly handle it in the async context
+        }
+    });
+}
 
-      for (UUID id : ids) {
+  public CompletableFuture<Integer> retrieveChapterCount(TranslatedLanguage lang) {
+    return CompletableFuture.supplyAsync(() -> {
+        GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/aggregate?translatedLanguage[]=" + lang.getLanguage());
+
         try{
-        GetAction getAction = new GetAction("https://api.mangadex.org/chapter/" + id);
-        chapters.add(new Chapter(getAction.execute().getJsonObject("data")));
+            JsonObject s = getAction.execute();
+            List<UUID> chaptersList = parseIds(s);
+            return chaptersList.size();
         }
-        catch (Exception e){
-          e.printStackTrace();
+        catch (IOException | ErrorException | RateLimitException e){
+            e.printStackTrace();
+            return 0;
         }
-      }
-
-      return chapters;
     });
   }
+  
+ public CompletableFuture<List<UUID>> retrieveChaptersIds(TranslatedLanguage lang){
+    return CompletableFuture.supplyAsync(() -> {
+        GetAction getAction = new GetAction("https://api.mangadex.org/manga/" + getId() + "/aggregate?translatedLanguage[]=" + lang.getLanguage());
 
-  public CompletableFuture<Chapter> retrieveChapterByNumber(TranslatedLanguage lang, int number) {
-  if (lang == null || number <= 0) {
-    return CompletableFuture.completedFuture(null);
-  }
+        try{
+            JsonObject s = getAction.execute();
 
-  CompletableFuture<List<UUID>> idsFuture = CompletableFuture.supplyAsync(() -> retrieveChaptersIds(lang));
+            List<UUID> chaptersList = parseIds(s);
+            Collections.reverse(chaptersList);
+            return chaptersList;
+        } catch (IOException | ErrorException | RateLimitException e){
+            e.printStackTrace();
+            return null;
+        }
+    });
+}
 
-  return idsFuture.thenComposeAsync(ids -> {
-    if (ids == null || ids.isEmpty() || number > ids.size()) {
-      return CompletableFuture.completedFuture(null);
+
+public CompletableFuture<List<Chapter>> retrieveChaptersOrdered(TranslatedLanguage language){
+    return retrieveChaptersIds(language).thenComposeAsync(ids -> {
+        if (ids == null) return CompletableFuture.completedFuture(null);
+
+        List<CompletableFuture<Chapter>> chapterFutures = ids.stream().map(id ->
+                CompletableFuture.supplyAsync(() -> {
+                    try{
+                        GetAction getAction = new GetAction("https://api.mangadex.org/chapter/" + id);
+                        return new Chapter(getAction.execute().getJsonObject("data"));
+                    } catch (IOException | ErrorException | RateLimitException e){
+                        e.printStackTrace();
+                        return null;
+                    }
+                }, Executors.newCachedThreadPool())
+        ).collect(Collectors.toList());
+
+        return CompletableFuture.allOf(chapterFutures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> chapterFutures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList()));
+    });
+}
+
+
+public CompletableFuture<Chapter> retrieveChapterByNumber(TranslatedLanguage lang, int number) {
+    if (lang == null || number <= 0) {
+        return CompletableFuture.completedFuture(null);
     }
 
-    UUID chapterId = ids.get(number - 1);
-    GetAction getAction = new GetAction("https://api.mangadex.org/chapter/" + chapterId);
-    CompletableFuture<JsonObject> responseFuture = CompletableFuture.supplyAsync(() -> {
-      try {
-        return getAction.execute().getJsonObject("data");
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
+    return retrieveChaptersIds(lang).thenComposeAsync(ids -> {
+        if (ids == null || ids.isEmpty() || number > ids.size()) {
+            return CompletableFuture.completedFuture(null);
+        }
 
-    return responseFuture.handle((jsonObject, throwable) -> {
-      if (throwable != null) {
+        UUID chapterId = ids.get(number - 1);
+        GetAction getAction = new GetAction("https://api.mangadex.org/chapter/" + chapterId);
+        CompletableFuture<JsonObject> responseFuture = CompletableFuture.supplyAsync(() -> {
+            try {
+                return getAction.execute().getJsonObject("data");
+            } catch (IOException | ErrorException | RateLimitException e) {
+                throw new CompletionException(e);
+            }
+        }, Executors.newCachedThreadPool());
+
+        return responseFuture.handle((jsonObject, throwable) -> {
+            if (throwable != null) {
+                throwable.printStackTrace();
+                return null;
+            }
+
+            return new Chapter(jsonObject);
+        });
+    }, Executors.newCachedThreadPool()).exceptionally(throwable -> {
         throwable.printStackTrace();
         return null;
-      }
-
-      return new Chapter(jsonObject);
     });
-  }, Executors.newCachedThreadPool()).exceptionally(throwable -> {
-    throwable.printStackTrace();
-    return null;
-  });
 }
+
 
 
   private static List<Chapter> sortChaptersByNumber(List<Chapter> chapters) {

@@ -61,6 +61,9 @@ public class ScanlationGroup implements ISnowflake {
     this.relationshipMap = new RelationshipMap(jsonObject.getJsonArray("relationships"));
   }
 
+  public RelationshipMap getRelationshipMap(){
+    return relationshipMap;
+  }
   
   @Override
   public String getId(){

@@ -2,13 +2,13 @@ package dev.kurumiDisciples.javadex.api.requests;
 
 import dev.kurumiDisciples.javadex.api.entities.Chapter;
 import dev.kurumiDisciples.javadex.api.entities.PageProxy;
-import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
+import dev.kurumiDisciples.javadex.api.exceptions.*;
 import dev.kurumiDisciples.javadex.api.requests.utils.GetAction;
 
-import java.util.ArrayList;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,11 +30,15 @@ public class PageBuilder {
             JsonArray data = chapterData.getJsonArray("data");
 
             return IntStream.range(0, data.size())
-                    .mapToObj(i -> new PageProxy(String.valueOf(i + 1), chapter, UPLOADS_SERVER + hash + "/" + data.getString(i)))
+                    .mapToObj(i -> new PageProxy(String.valueOf(i + 1), chapter, buildPageUrl(hash, data.getString(i))))
                     .collect(Collectors.toList());
-        } catch (IOException | ErrorException e) {
+        } catch (IOException | ErrorException | RateLimitException e) {
             LOGGER.log(Level.WARNING, "Exception occurred in getPages()", e);
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
+    }
+
+    private static String buildPageUrl(String hash, String dataPart) {
+        return UPLOADS_SERVER + hash + "/" + dataPart;
     }
 }

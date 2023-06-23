@@ -15,7 +15,7 @@ import java.net.URLEncoder;
 import java.io.UnsupportedEncodingException;
 
 
-import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
+import dev.kurumiDisciples.javadex.api.exceptions.*;
 import java.nio.charset.StandardCharsets;
 
 public class GetAction implements AutoCloseable {
@@ -39,24 +39,31 @@ public class GetAction implements AutoCloseable {
         this(url, Executors.newFixedThreadPool(THREAD_POOL_SIZE), headers, params);
     }
 
+    public GetAction(String url, JsonObject headers){
+        this(url, Executors.newFixedThreadPool(THREAD_POOL_SIZE), headers, Json.createObjectBuilder().build());
+    }
+
     public GetAction(String url){
         this(url, Json.createObjectBuilder().build(), Json.createObjectBuilder().build());
     }
 
     public CompletableFuture<JsonObject> executeAsync() {
-        CompletableFuture<JsonObject> future = new CompletableFuture<>();
-        executor.execute(() -> {
-            try {
-                JsonObject result = execute();
-                future.complete(result);
-            } catch (Exception ex) {
-                future.completeExceptionally(ex);
-            }
-        });
-        return future;
-    }
+    CompletableFuture<JsonObject> future = new CompletableFuture<>();
+    executor.execute(() -> {
+        try {
+            JsonObject result = execute();
+            future.complete(result);
+        } catch (RateLimitException ex) {
+            future.completeExceptionally(ex);
+        } catch (Exception ex) {
+            future.completeExceptionally(ex);
+        }
+    });
+    return future;
+}
 
-    public JsonObject execute() throws IOException, ErrorException {
+
+    public JsonObject execute() throws IOException, ErrorException, RateLimitException {
         String queryString = jsonObjectToQueryString(params);
         URL url = new URL(this.url + queryString);
         connection = (HttpURLConnection) url.openConnection();
@@ -69,18 +76,21 @@ public class GetAction implements AutoCloseable {
         return handleResponse(connection);
     }
     
-    private JsonObject handleResponse(HttpURLConnection connection) throws IOException, ErrorException {
-        int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            JsonObject jsonObject = readResponse(connection);
-            if (isError(jsonObject)) {
-                throw new ErrorException(jsonObject);
-            }
-            return jsonObject;
-        } else {
-            throw new IOException("GET request failed with response code " + responseCode);
+    private JsonObject handleResponse(HttpURLConnection connection) throws IOException, ErrorException, RateLimitException {
+    int responseCode = connection.getResponseCode();
+    if (responseCode == HttpURLConnection.HTTP_OK) {
+        JsonObject jsonObject = readResponse(connection);
+        if (isError(jsonObject)) {
+            throw new ErrorException(jsonObject);
         }
+        return jsonObject;
+    } else if (responseCode == 429) {
+        throw new RateLimitException("Rate limit exceeded with response code " + responseCode);
+    } else {
+        throw new IOException("GET request failed with response code " + responseCode);
     }
+}
+
 
     private JsonObject readResponse(HttpURLConnection connection) throws IOException {
         try (JsonReader jsonReader = Json.createReader(connection.getInputStream())) {
