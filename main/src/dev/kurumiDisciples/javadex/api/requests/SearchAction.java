@@ -298,14 +298,14 @@ Retrieves a Manga object for the specified ID from MangaDex API.
   public CompletableFuture<List<Manga>> submit() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return search();
-            } catch (ErrorException | IOException e) {
+                return complete();
+            } catch (ErrorException | IOException | RateLimitException e) {
                 throw new CompletionException(e);
             }
         });
     }
 
-    private List<Manga> search() throws ErrorException, IOException {
+    private List<Manga> complete() throws ErrorException, IOException, RateLimitException {
         JsonObject param = MangaQueryJsonConverter.toJson(this);
         GetAction get = new GetAction(API_BASE_URL, Json.createObjectBuilder().build(), param);
         JsonObject response = get.execute();

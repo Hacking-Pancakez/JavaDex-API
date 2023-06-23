@@ -65,7 +65,7 @@ public class Chapter implements ISnowflake, IPublishable{
   }
 
   /* will be avaliable with relationships support */
-  public CompletableFuture<Manga> retrieveOriginManga(){
+  public CompletableFuture<Manga> getAssociatedManga(){
     return SearchAction.getMangaById(getRelationshipMap().get(RelationshipType.MANGA).get(0).toString());
   }
 

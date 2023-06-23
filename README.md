@@ -1,7 +1,7 @@
 
 # JavaDex: Java MangaDex API
 
-An unofficial wrapper for the MangaDex API. This wrapper is currently in development. For the most stable version always pull from the `master` branch. This repo is currently open to contribution, contact `HackingPancakez#0001` on Discord for info.
+An unofficial wrapper for the MangaDex API. This wrapper is currently in development. For the most stable version always pull from the `master` branch. This repo is currently open to contribution, contact `hackingpancakez` on Discord for info.
 
 
 ## Disclaimer

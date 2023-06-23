@@ -1,7 +1,7 @@
 package dev.kurumiDisciples.javadex.api.requests;
 
 import dev.kurumiDisciples.javadex.api.entities.Chapter;
-import dev.kurumiDisciples.javadex.api.exceptions.ErrorException;
+import dev.kurumiDisciples.javadex.api.exceptions.*;
 import dev.kurumiDisciples.javadex.api.requests.utils.GetAction;
 
 import javax.json.JsonObject;
@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 public class HashAction {
   private static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
-  private static String getHash(Chapter chapter) throws IOException, ErrorException {
+  private static String getHash(Chapter chapter) throws IOException, ErrorException, RateLimitException {
     try (GetAction getAction = new GetAction("https://api.mangadex.org/at-home/server/" + chapter.getId())) {
       JsonObject responseJson = getAction.execute();
       if (isError(responseJson)) throw new ErrorException(responseJson);
@@ -29,7 +29,7 @@ public class HashAction {
     return CompletableFuture.supplyAsync(() -> {
       try {
         return getHash(chapter);
-      } catch (IOException | ErrorException ex) {
+      } catch (IOException | ErrorException | RateLimitException ex) {
         throw new RuntimeException(ex);
       }
     }, executor);
